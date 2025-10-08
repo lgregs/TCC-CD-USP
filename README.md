@@ -3,15 +3,15 @@
 * Dados retirados do [Kaggle](https://www.kaggle.com/datasets/agrafintech/turkish-public-companies-balance-sheets-from-kap)
 
 ## Planejamento Inicial
-* Extrair os dados do Kaggle
-* Construir um banco de dados SQLite
-* Extrair do banco o maior periodo de empresas com dados durante os mesmos anos.
-* Tirar um Dataset do BD
-* Entendimento dos Dados Contexto Financeiro
-* Limpeza e Análise do Dataset
-* Engenharia de Features
-* Exploração dos Dados
-* Visualização dos Dados com Gráficos e Dashboards
-* Modelagem
-* Validação
-* SHAP para explicaçaõ do Modelo
+* Extrair os dados do Kaggle - ok
+* Construir um banco de dados SQLite - ok 
+* Extrair do banco o maior periodo de empresas com dados durante os mesmos anos. - ok
+* Tirar um Dataset do BD - ok
+* Entendimento dos Dados Contexto Financeiro - ok
+* Limpeza e Análise do Dataset - ok
+* Engenharia de Features - em andamento ...
+* Exploração dos Dados - por fazer
+* Visualização dos Dados com Gráficos e Dashboards - por fazer
+* Modelagem - por fazer
+* Validação - por fazer 
+* SHAP para explicaçaõ do Modelo - por fazer
