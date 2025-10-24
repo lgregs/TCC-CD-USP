@@ -2,7 +2,7 @@
 * MBA Ciência de Dados - USP ICMC São Carlos
 
 * Dados retirados do [Kaggle](https://www.kaggle.com/datasets/agrafintech/turkish-public-companies-balance-sheets-from-kap).
-Também podem ser encontrados em [KAP](https://kap.org.tr/).
+* Também podem ser encontrados em [KAP](https://kap.org.tr/).
 
 ## Planejamento Inicial
 * Extrair os dados do Kaggle - ok
