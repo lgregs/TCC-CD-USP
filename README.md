@@ -190,3 +190,6 @@ Esses índices formam um *check-up financeiro 360°* — mostram **capacidade de
  **Por que importa:** exposição cambial negativa sinaliza vulnerabilidade financeira e risco de perda em choques de moeda.
 
 ---
+ * Observação Importante: A única ressalva é que os rácios de eficiência (como asset_turnover e inventory_turnover) são altamente dependentes do setor. Um supermercado terá um giro de estoque altíssimo, enquanto uma fabricante de aviões terá um giro baixíssimo. Seu modelo cria uma "regra geral" excelente, o que é um ótimo ponto de partida.
+
+ 
