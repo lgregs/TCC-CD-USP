@@ -2,7 +2,7 @@ import numpy as np
 def score_financial_ratios(df):
     """
     Aplica um sistema de pontuação baseado em thresholds financeiros para
-    criar 13 novas colunas de 'score' e um 'total_score'.
+    criar 20 novas colunas de 'score' e um 'total_score' (média).
 
     Args:
         df (pd.DataFrame): O DataFrame contendo os rácios já calculados.
@@ -13,56 +13,38 @@ def score_financial_ratios(df):
     # Cria uma cópia para evitar o SettingWithCopyWarning
     data = df.copy()
 
-    # --- 0. Calculate Profitability Ratios (if not present) ---
-    # Calcula os ratios de EBITDA necessários para a Seção 1
-    # Assumimos que 'ebitda', 'receita_de_vendas', etc., existem no input df
+    # --- 0. Calcular Rácios de Rentabilidade ---
+    # ** CORREÇÃO: Usar 'ebitda_final' (calculada anteriormente) no lugar de 'ebitda' **
     
-    required_for_ebitda = ['ebitda', 'receita_de_vendas', 'despesas_financeiras', 'dívidas_financeiras']
+    required_for_ebitda = ['ebitda_final', 'receita_de_vendas', 'despesas_financeiras', 'dívidas_financeiras']
     for col in required_for_ebitda:
         if col not in data.columns:
-            print(f"Aviso: A coluna {col} (necessária para ratios de EBITDA) não foi encontrada.")
-            # Cria uma coluna placeholder com NaN para evitar erros no cálculo
+            print(f"Aviso: A coluna {col} (necessária para rácios de EBITDA) não foi encontrada.")
             data[col] = np.nan 
 
-    data['ebitda_margin'] = data['ebitda'] / data['receita_de_vendas']
-    data['ebitda_to_interest'] = data['ebitda'] / data['despesas_financeiras']
-    data['ebitda_to_debt'] = data['ebitda'] / data['dívidas_financeiras']
+    data['ebitda_margin'] = data['ebitda_final'] / data['receita_de_vendas']
+    data['ebitda_to_interest'] = data['ebitda_final'] / data['despesas_financeiras']
+    data['ebitda_to_debt'] = data['ebitda_final'] / data['dívidas_financeiras']
 
-    # Ratios podem criar valores infinitos (ex: 100 / 0).
-    # Substituímos 'inf' e '-inf' por 'NaN' (Not a Number)
-    # Isto é feito *antes* do preenchimento geral de NaNs
+    # Substitui 'inf' e '-inf' por 'NaN' antes de preencher os NaNs
     data.replace([np.inf, -np.inf], np.nan, inplace=True)
 
     # --- Pré-processamento: Tratar NaNs ---
-    # Antes de pontuar, devemos tratar os NaNs que surgiram do cálculo dos
-    # rácios (ex: divisão por zero ou primeiro ano de crescimento).
-    # Preencher com 0 é uma abordagem neutra e segura.
+    # Preenche com 0 ANTES de pontuar.
     ratios_to_score = [
-        # Profitability & Earnings (Nova Seção)
         'ebitda_margin', 'ebitda_to_interest', 'ebitda_to_debt',
         'roe', 'roa', 'net_margin', 'operating_margin',
-        # Liquidez & Solvência (Existente)
         'current_ratio', 'quick_ratio', 'debt_to_equity', 'debt_to_assets',
         'interest_coverage', 'retained_to_assets', 
-        # Eficiência (Existente)
-        'asset_turnover',
-        'inventory_turnover', 'receivable_turnover', 
-        # Crescimento (Existente)
-        'sales_growth',
-        'asset_growth', 'net_income_growth', 
-        # Risco (Existente)
+        'asset_turnover', 'inventory_turnover', 'receivable_turnover', 
+        'sales_growth', 'asset_growth', 'net_income_growth', 
         'fx_position_ratio'
     ]
-    # Garante que as colunas existem antes de tentar preencher
-    for col in ratios_to_score:
-        if col not in data.columns:
-            print(f"Aviso: A coluna {col} não foi encontrada. Será ignorada.")
-            
-    # Filtra a lista para colunas que realmente existem no dataframe
+    
     existing_ratios_to_score = [col for col in ratios_to_score if col in data.columns]
     data[existing_ratios_to_score] = data[existing_ratios_to_score].fillna(0)
 
-    # --- 1. Profitability & Earnings Quality ---
+    # --- 1. Pontuação: Lucratividade e Qualidade dos Ganhos ---
 
     # ebitda_margin: <0 = 0; 0–10% = 3; 10–20% = 7; >20% = 10
     conditions = [
@@ -83,7 +65,6 @@ def score_financial_ratios(df):
     data['score_ebitda_to_interest'] = np.select(conditions, scores, default=10)
 
     # ebitda_to_debt: <0.05 = 0; 0.05-0.1 = 5; 0.1-0.3 = 8; >0.3 = 10
-    # (Interpretando "0.1 = 5; 0.3 = 8; >0.5 = 10")
     conditions = [
         data['ebitda_to_debt'] < 0.05,
         data['ebitda_to_debt'] < 0.1,
@@ -129,7 +110,7 @@ def score_financial_ratios(df):
     scores = [0, 5, 8]
     data['score_operating_margin'] = np.select(conditions, scores, default=10)
 
-    # --- 2. Liquidez & Solvência --- (Re-numerado)
+    # --- 2. Pontuação: Liquidez & Solvência ---
 
     # current_ratio: <1 = 0; 1–1.5 = 5; 1.5–2.5 = 8; >2.5 = 10
     conditions = [
@@ -185,7 +166,7 @@ def score_financial_ratios(df):
     scores = [0, 4, 8]
     data['score_retained_to_assets'] = np.select(conditions, scores, default=10)
 
-    # --- 3. Eficiência (Gestão de Ativos) --- (Re-numerado)
+    # --- 3. Pontuação: Eficiência (Gestão de Ativos) ---
 
     # asset_turnover: <0.3 = 0; 0.3–0.6 = 5; 0.6–1.0 = 8; >1.0 = 10
     conditions = [
@@ -214,7 +195,7 @@ def score_financial_ratios(df):
     scores = [0, 5, 8]
     data['score_receivable_turnover'] = np.select(conditions, scores, default=10)
 
-    # --- 4. Métricas de Crescimento --- (Re-numerado)
+    # --- 4. Pontuação: Métricas de Crescimento ---
 
     # sales_growth: <0 = 0; 0–5% = 4; 5–15% = 7; >15% = 10
     conditions = [
@@ -243,8 +224,7 @@ def score_financial_ratios(df):
     scores = [0, 4, 8]
     data['score_net_income_growth'] = np.select(conditions, scores, default=10)
 
-    # --- 5. Risco / Exposição Cambial --- (Re-numerado)
-    # Usando 'fx_position_ratio' que calculamos
+    # --- 5. Pontuação: Risco / Exposição Cambial ---
     # < -0.2 = 0; -0.1–0 = 5; 0–0.1 = 8; >0.1 = 10
     conditions = [
         data['fx_position_ratio'] < -0.2,
@@ -255,9 +235,8 @@ def score_financial_ratios(df):
     data['score_fx_position_ratio'] = np.select(conditions, scores, default=10)
 
     # --- 6. Criar Pontuação Total ---
-    # Soma todas as pontuações individuais para uma métrica de saúde geral
+    # Calcula a MÉDIA de todas as pontuações individuais (escala 0-10)
     score_columns = [col for col in data.columns if col.startswith('score_')]
-    # Alterado de .sum() para .mean() para obter uma média ponderada (0-10)
     data['total_score'] = data[score_columns].mean(axis=1)
 
     return data
