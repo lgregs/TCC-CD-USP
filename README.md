@@ -126,7 +126,7 @@ Esses índices formam um *check-up financeiro 360°* — mostram **capacidade de
 
 ---
 
-### 🧮 1️⃣ **Rentabilidade e Qualidade dos Lucros**
+###  **Rentabilidade e Qualidade dos Lucros**
 
 | Métrica                        | Fórmula                            | Limiares (Aproximados)                   | Justificativa                                              |
 | ------------------------------ | ---------------------------------- | ---------------------------------------- | ---------------------------------------------------------- |
@@ -138,11 +138,11 @@ Esses índices formam um *check-up financeiro 360°* — mostram **capacidade de
 | **Margem Líquida**             | Lucro Líquido / Vendas             | <0 = 0; 0–5% = 5; 5–15% = 8; >15% = 10   | OECD PME: 5–15% é saudável                                 |
 | **Margem Operacional**         | EBIT / Vendas                      | <0 = 0; 0–10% = 5; 10–20% = 8; >20% = 10 | Referência industrial comum                                |
 
-✅ **Por que importa:** mede eficiência, lucratividade e cobertura de juros — indicadores diretos da capacidade de gerar lucro sustentável.
+ **Por que importa:** mede eficiência, lucratividade e cobertura de juros — indicadores diretos da capacidade de gerar lucro sustentável.
 
 ---
 
-### 🧮 2️⃣ **Liquidez e Solvência**
+### **Liquidez e Solvência**
 
 | Métrica                         | Fórmula                                                | Limiares (Aproximados)                        | Justificativa                               |
 | ------------------------------- | ------------------------------------------------------ | --------------------------------------------- | ------------------------------------------- |
@@ -153,11 +153,11 @@ Esses índices formam um *check-up financeiro 360°* — mostram **capacidade de
 | **Cobertura de Juros**          | EBIT / Despesas Financeiras                            | <1 = 0; 1–3 = 5; 3–5 = 8; >5 = 10             | Ohlson (1980): zonas de risco financeiro    |
 | **Lucros Retidos / Ativos**     | Lucros Acumulados / Ativos Totais                      | <0 = 0; 0–0.1 = 4; 0.1–0.3 = 8; >0.3 = 10     | Base do modelo Altman Z-Score               |
 
-✅ **Por que importa:** mostra a capacidade de pagar dívidas e manter solvência a longo prazo.
+ **Por que importa:** mostra a capacidade de pagar dívidas e manter solvência a longo prazo.
 
 ---
 
-### 🧮 3️⃣ **Eficiência (Gestão de Ativos)**
+###  **Eficiência (Gestão de Ativos)**
 
 | Métrica                      | Fórmula                                | Limiares (Aproximados)                        | Justificativa                                           |
 | ---------------------------- | -------------------------------------- | --------------------------------------------- | ------------------------------------------------------- |
@@ -165,11 +165,11 @@ Esses índices formam um *check-up financeiro 360°* — mostram **capacidade de
 | **Giro de Estoques**         | Custo dos Produtos Vendidos / Estoques | <2 = 0; 2–4 = 5; 4–8 = 8; >8 = 10             | Livros contábeis: giro alto = eficiente                 |
 | **Giro de Contas a Receber** | Vendas / Contas a Receber              | <2 = 0; 2–5 = 5; 5–10 = 8; >10 = 10           | Brigham (2017): cobrança rápida = melhor fluxo de caixa |
 
-✅ **Por que importa:** mede eficiência operacional e conversão de ativos em receita e caixa.
+ **Por que importa:** mede eficiência operacional e conversão de ativos em receita e caixa.
 
 ---
 
-### 🧮 4️⃣ **Crescimento**
+### **Crescimento**
 
 | Métrica                          | Fórmula                   | Limiares (Aproximados)                 | Justificativa                                  |
 | -------------------------------- | ------------------------- | -------------------------------------- | ---------------------------------------------- |
@@ -177,16 +177,16 @@ Esses índices formam um *check-up financeiro 360°* — mostram **capacidade de
 | **Crescimento dos Ativos**       | ΔAtivos / Ativosₜ₋₁       | <0 = 0; 0–5% = 4; 5–15% = 7; >15% = 10 | Reflete expansão de recursos e reinvestimento  |
 | **Crescimento do Lucro Líquido** | ΔLucro Líquido / Lucroₜ₋₁ | <0 = 0; 0–5% = 4; 5–20% = 8; >20% = 10 | Mede a melhoria da rentabilidade               |
 
-✅ **Por que importa:** crescimento sustentável indica boa gestão e saúde financeira no longo prazo.
+ **Por que importa:** crescimento sustentável indica boa gestão e saúde financeira no longo prazo.
 
 ---
 
-### 🧮 5️⃣ **Risco / Exposição Cambial**
+### **Risco / Exposição Cambial**
 
 | Métrica                     | Fórmula                            | Limiares (Aproximados)                       | Justificativa                                            |
 | --------------------------- | ---------------------------------- | -------------------------------------------- | -------------------------------------------------------- |
 | **Posição Cambial Líquida** | Exposição Cambial Líquida / Ativos | < -0.2 = 0; -0.1–0 = 5; 0–0.1 = 8; >0.1 = 10 | CBRT (2021–2024): valores negativos = risco cambial alto |
 
-✅ **Por que importa:** exposição cambial negativa sinaliza vulnerabilidade financeira e risco de perda em choques de moeda.
+ **Por que importa:** exposição cambial negativa sinaliza vulnerabilidade financeira e risco de perda em choques de moeda.
 
 ---
