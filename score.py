@@ -1,4 +1,6 @@
+import pandas as pd
 import numpy as np
+
 def score_financial_ratios(df):
     """
     Aplica um sistema de pontuação baseado em thresholds financeiros para
@@ -6,22 +8,26 @@ def score_financial_ratios(df):
 
     Args:
         df (pd.DataFrame): O DataFrame contendo os rácios já calculados.
+                           DEVE conter 'ebitda_final' e outros rácios.
 
     Returns:
         pd.DataFrame: O DataFrame original com as novas colunas de pontuação.
     """
     # Cria uma cópia para evitar o SettingWithCopyWarning
     data = df.copy()
+
+    # --- 0. Calcular Rácios de Rentabilidade ---
+    # ** USA 'ebitda_final' (calculada no script principal) **
     
-    required_for_ebitda = ['ebitda', 'receita_de_vendas', 'despesas_financeiras', 'dívidas_financeiras']
+    required_for_ebitda = ['ebitda_final', 'receita_de_vendas', 'despesas_financeiras', 'dívidas_financeiras']
     for col in required_for_ebitda:
         if col not in data.columns:
             print(f"Aviso: A coluna {col} (necessária para rácios de EBITDA) não foi encontrada.")
             data[col] = np.nan 
 
-    data['ebitda_margin'] = data['ebitda'] / data['receita_de_vendas']
-    data['ebitda_to_interest'] = data['ebitda'] / data['despesas_financeiras']
-    data['ebitda_to_debt'] = data['ebitda'] / data['dívidas_financeiras']
+    data['ebitda_margin'] = data['ebitda_final'] / data['receita_de_vendas']
+    data['ebitda_to_interest'] = data['ebitda_final'] / data['despesas_financeiras']
+    data['ebitda_to_debt'] = data['ebitda_final'] / data['dívidas_financeiras']
 
     # Substitui 'inf' e '-inf' por 'NaN' antes de preencher os NaNs
     data.replace([np.inf, -np.inf], np.nan, inplace=True)
@@ -231,9 +237,55 @@ def score_financial_ratios(df):
     scores = [0, 5, 8]
     data['score_fx_position_ratio'] = np.select(conditions, scores, default=10)
 
-    # --- 6. Criar Pontuação Total ---
-    # Calcula a MÉDIA de todas as pontuações individuais (escala 0-10)
-    score_columns = [col for col in data.columns if col.startswith('score_')]
-    data['total_score'] = data[score_columns].mean(axis=1)
+    # --- 6. Criar Pontuação Total (Média Ponderada por Setor) ---
+    
+    # 6a. Definir as colunas de score para cada categoria (baseado na Metodologia)
+    cols_rentabilidade = [
+        'score_ebitda_margin', 'score_ebitda_to_interest', 'score_ebitda_to_debt',
+        'score_roe', 'score_roa', 'score_net_margin', 'score_operating_margin'
+    ] # 7 colunas
+    
+    cols_liquidez = [
+        'score_current_ratio', 'score_quick_ratio', 'score_debt_to_equity',
+        'score_debt_to_assets', 'score_interest_coverage', 'score_retained_to_assets'
+    ] # 6 colunas
+    
+    cols_eficiencia = [
+        'score_asset_turnover', 'score_inventory_turnover', 'score_receivable_turnover'
+    ] # 3 colunas
+    
+    cols_crescimento = [
+        'score_sales_growth', 'score_asset_growth', 'score_net_income_growth'
+    ] # 3 colunas
+    
+    cols_fx = [
+        'score_fx_position_ratio'
+    ] # 1 coluna
+
+    # 6b. Calcular a pontuação média para cada setor
+    # .mean(axis=1) calcula a média de todas as colunas para cada linha (empresa-ano)
+    score_setor_rentabilidade = data[cols_rentabilidade].mean(axis=1)
+    score_setor_liquidez = data[cols_liquidez].mean(axis=1)
+    score_setor_eficiencia = data[cols_eficiencia].mean(axis=1)
+    score_setor_crescimento = data[cols_crescimento].mean(axis=1)
+    score_setor_fx = data[cols_fx].mean(axis=1) # (é a própria coluna, mas .mean() é seguro)
+
+    # 6c. Definir os pesos
+    W_RENTABILIDADE = 0.30  # 30%
+    W_LIQUIDEZ = 0.25       # 25%
+    W_EFICIENCIA = 0.20     # 20%
+    W_CRESCIMENTO = 0.10    # 10%
+    W_FX = 0.15             # 15%
+    # Total = 1.0 (100%)
+
+    # 6d. Calcular o total_score ponderado
+    data['total_score'] = (
+        (score_setor_rentabilidade * W_RENTABILIDADE) +
+        (score_setor_liquidez * W_LIQUIDEZ) +
+        (score_setor_eficiencia * W_EFICIENCIA) +
+        (score_setor_crescimento * W_CRESCIMENTO) +
+        (score_setor_fx * W_FX)
+    )
 
     return data
+
