@@ -122,3 +122,71 @@ Cada índice revela **quão forte ou frágil** é uma empresa sob um aspecto esp
  **Em resumo:**
 Esses índices formam um *check-up financeiro 360°* — mostram **capacidade de pagamento**, **geração de lucro** e **resiliência ao risco** — essenciais para avaliar a probabilidade de inadimplência e a saúde financeira da empresa.
 
+### Thresholds para criação das Features de Score.
+
+---
+
+### 🧮 1️⃣ **Rentabilidade e Qualidade dos Lucros**
+
+| Métrica                        | Fórmula                            | Limiares (Aproximados)                   | Justificativa                                              |
+| ------------------------------ | ---------------------------------- | ---------------------------------------- | ---------------------------------------------------------- |
+| **Margem EBITDA**              | EBITDA / Vendas                    | <0 = 0; 0–10% = 3; 10–20% = 7; >20% = 10 | Damodaran (2023): margens médias por setor; <0 = prejuízo  |
+| **EBITDA / Juros**             | EBITDA / Despesas Financeiras      | <1 = 0; 1–3 = 5; 3–5 = 7; >5 = 10        | Van Horne (2008): cobertura >5× é considerada segura       |
+| **EBITDA / Dívida**            | EBITDA / Dívida Total              | <0.05 = 0; 0.1 = 5; 0.3 = 8; >0.5 = 10   | Moody’s: >30% = boa geração de caixa                       |
+| **ROE (Retorno sobre PL)**     | Lucro Líquido / Patrimônio Líquido | <0 = 0; 0–10% = 5; 10–20% = 7; >20% = 10 | Uyar & Kuzey (2014): >20% = quartil superior de desempenho |
+| **ROA (Retorno sobre Ativos)** | Lucro Líquido / Ativos Totais      | <0 = 0; 0–5% = 5; 5–10% = 8; >10% = 10   | Damodaran: mediana global do ROA ≈ 6%                      |
+| **Margem Líquida**             | Lucro Líquido / Vendas             | <0 = 0; 0–5% = 5; 5–15% = 8; >15% = 10   | OECD PME: 5–15% é saudável                                 |
+| **Margem Operacional**         | EBIT / Vendas                      | <0 = 0; 0–10% = 5; 10–20% = 8; >20% = 10 | Referência industrial comum                                |
+
+✅ **Por que importa:** mede eficiência, lucratividade e cobertura de juros — indicadores diretos da capacidade de gerar lucro sustentável.
+
+---
+
+### 🧮 2️⃣ **Liquidez e Solvência**
+
+| Métrica                         | Fórmula                                                | Limiares (Aproximados)                        | Justificativa                               |
+| ------------------------------- | ------------------------------------------------------ | --------------------------------------------- | ------------------------------------------- |
+| **Índice de Liquidez Corrente** | Ativos Circulantes / Passivos Circulantes              | <1.0 = 0; 1–1.5 = 5; 1.5–2.5 = 8; >2.5 = 10   | Van Horne & Wachowicz (2008): 1.5–2.5 ideal |
+| **Índice de Liquidez Seca**     | (Ativos Circulantes - Estoques) / Passivos Circulantes | <0.5 = 0; 0.5–1.0 = 5; 1–1.5 = 8; >1.5 = 10   | Brigham & Ehrhardt (2017)                   |
+| **Dívida / Patrimônio**         | Dívida Total / Patrimônio Líquido                      | >3.0 = 0; 2–3 = 3; 1–2 = 6; <1 = 10           | Damodaran (2015): >3 = altamente alavancada |
+| **Dívida / Ativos**             | Dívida Total / Ativos Totais                           | >0.8 = 0; 0.6–0.8 = 3; 0.4–0.6 = 6; <0.4 = 10 | OECD: estrutura de capital típica           |
+| **Cobertura de Juros**          | EBIT / Despesas Financeiras                            | <1 = 0; 1–3 = 5; 3–5 = 8; >5 = 10             | Ohlson (1980): zonas de risco financeiro    |
+| **Lucros Retidos / Ativos**     | Lucros Acumulados / Ativos Totais                      | <0 = 0; 0–0.1 = 4; 0.1–0.3 = 8; >0.3 = 10     | Base do modelo Altman Z-Score               |
+
+✅ **Por que importa:** mostra a capacidade de pagar dívidas e manter solvência a longo prazo.
+
+---
+
+### 🧮 3️⃣ **Eficiência (Gestão de Ativos)**
+
+| Métrica                      | Fórmula                                | Limiares (Aproximados)                        | Justificativa                                           |
+| ---------------------------- | -------------------------------------- | --------------------------------------------- | ------------------------------------------------------- |
+| **Giro do Ativo**            | Vendas / Ativos                        | <0.3 = 0; 0.3–0.6 = 5; 0.6–1.0 = 8; >1.0 = 10 | OECD: eficiência operacional média                      |
+| **Giro de Estoques**         | Custo dos Produtos Vendidos / Estoques | <2 = 0; 2–4 = 5; 4–8 = 8; >8 = 10             | Livros contábeis: giro alto = eficiente                 |
+| **Giro de Contas a Receber** | Vendas / Contas a Receber              | <2 = 0; 2–5 = 5; 5–10 = 8; >10 = 10           | Brigham (2017): cobrança rápida = melhor fluxo de caixa |
+
+✅ **Por que importa:** mede eficiência operacional e conversão de ativos em receita e caixa.
+
+---
+
+### 🧮 4️⃣ **Crescimento**
+
+| Métrica                          | Fórmula                   | Limiares (Aproximados)                 | Justificativa                                  |
+| -------------------------------- | ------------------------- | -------------------------------------- | ---------------------------------------------- |
+| **Crescimento das Vendas**       | ΔVendas / Vendasₜ₋₁       | <0 = 0; 0–5% = 4; 5–15% = 7; >15% = 10 | Damodaran (2024): crescimento sustentável ~10% |
+| **Crescimento dos Ativos**       | ΔAtivos / Ativosₜ₋₁       | <0 = 0; 0–5% = 4; 5–15% = 7; >15% = 10 | Reflete expansão de recursos e reinvestimento  |
+| **Crescimento do Lucro Líquido** | ΔLucro Líquido / Lucroₜ₋₁ | <0 = 0; 0–5% = 4; 5–20% = 8; >20% = 10 | Mede a melhoria da rentabilidade               |
+
+✅ **Por que importa:** crescimento sustentável indica boa gestão e saúde financeira no longo prazo.
+
+---
+
+### 🧮 5️⃣ **Risco / Exposição Cambial**
+
+| Métrica                     | Fórmula                            | Limiares (Aproximados)                       | Justificativa                                            |
+| --------------------------- | ---------------------------------- | -------------------------------------------- | -------------------------------------------------------- |
+| **Posição Cambial Líquida** | Exposição Cambial Líquida / Ativos | < -0.2 = 0; -0.1–0 = 5; 0–0.1 = 8; >0.1 = 10 | CBRT (2021–2024): valores negativos = risco cambial alto |
+
+✅ **Por que importa:** exposição cambial negativa sinaliza vulnerabilidade financeira e risco de perda em choques de moeda.
+
+---
