@@ -12,19 +12,16 @@ def score_financial_ratios(df):
     """
     # Cria uma cópia para evitar o SettingWithCopyWarning
     data = df.copy()
-
-    # --- 0. Calcular Rácios de Rentabilidade ---
-    # ** CORREÇÃO: Usar 'ebitda_final' (calculada anteriormente) no lugar de 'ebitda' **
     
-    required_for_ebitda = ['ebitda_final', 'receita_de_vendas', 'despesas_financeiras', 'dívidas_financeiras']
+    required_for_ebitda = ['ebitda', 'receita_de_vendas', 'despesas_financeiras', 'dívidas_financeiras']
     for col in required_for_ebitda:
         if col not in data.columns:
             print(f"Aviso: A coluna {col} (necessária para rácios de EBITDA) não foi encontrada.")
             data[col] = np.nan 
 
-    data['ebitda_margin'] = data['ebitda_final'] / data['receita_de_vendas']
-    data['ebitda_to_interest'] = data['ebitda_final'] / data['despesas_financeiras']
-    data['ebitda_to_debt'] = data['ebitda_final'] / data['dívidas_financeiras']
+    data['ebitda_margin'] = data['ebitda'] / data['receita_de_vendas']
+    data['ebitda_to_interest'] = data['ebitda'] / data['despesas_financeiras']
+    data['ebitda_to_debt'] = data['ebitda'] / data['dívidas_financeiras']
 
     # Substitui 'inf' e '-inf' por 'NaN' antes de preencher os NaNs
     data.replace([np.inf, -np.inf], np.nan, inplace=True)
