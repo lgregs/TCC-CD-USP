@@ -1,3 +1,4 @@
+import numpy as np
 def create_financial_ratios(df):
     """
     Calcula um conjunto abrangente de rácios financeiros com base no dataframe fornecido.
@@ -65,3 +66,4 @@ def create_financial_ratios(df):
     data.replace([np.inf, -np.inf], np.nan, inplace=True)
 
     return data
+
