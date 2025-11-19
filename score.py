@@ -19,6 +19,7 @@ def score_financial_ratios(df):
     # --- 0. Calcular Rácios de Rentabilidade ---
     # ** USA 'ebitda_final' (calculada no script principal) **
     
+    '''
     required_for_ebitda = ['ebitda_final', 'receita_de_vendas', 'despesas_financeiras', 'dívidas_financeiras']
     for col in required_for_ebitda:
         if col not in data.columns:
@@ -28,6 +29,7 @@ def score_financial_ratios(df):
     data['ebitda_margin'] = data['ebitda_final'] / data['receita_de_vendas']
     data['ebitda_to_interest'] = data['ebitda_final'] / data['despesas_financeiras']
     data['ebitda_to_debt'] = data['ebitda_final'] / data['dívidas_financeiras']
+    '''
 
     # Substitui 'inf' e '-inf' por 'NaN' antes de preencher os NaNs
     data.replace([np.inf, -np.inf], np.nan, inplace=True)
