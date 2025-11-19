@@ -60,6 +60,16 @@ def create_financial_ratios(df):
     data['asset_growth'] = data.groupby('companycode')['total_de_ativos'].pct_change()
     data['net_income_growth'] = data.groupby('companycode')['lucro_prejuízo_líquido_do_período'].pct_change()
 
+    required_for_ebitda = ['ebitda_final', 'receita_de_vendas', 'despesas_financeiras', 'dívidas_financeiras']
+    for col in required_for_ebitda:
+        if col not in data.columns:
+            print(f"Aviso: A coluna {col} (necessária para rácios de EBITDA) não foi encontrada.")
+            data[col] = np.nan 
+
+    data['ebitda_margin'] = data['ebitda_final'] / data['receita_de_vendas']
+    data['ebitda_to_interest'] = data['ebitda_final'] / data['despesas_financeiras']
+    data['ebitda_to_debt'] = data['ebitda_final'] / data['dívidas_financeiras']
+
     # --- 8. Limpeza Final ---
     # Rácios podem criar valores infinitos (ex: 100 / 0).
     # Substituímos todos 'inf' e '-inf' por 'NaN' (Not a Number)
