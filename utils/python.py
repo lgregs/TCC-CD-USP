@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 # Importa as funções dos seus novos arquivos .py
-from utils.financial_ratios import create_financial_ratios
-from utils.score import score_financial_ratios
+from EDA.financial_ratios import create_financial_ratios
+from EDA.score import score_financial_ratios
 
 def clean_col_name(col_name):
     """Limpa os nomes das colunas para um formato padronizado."""
