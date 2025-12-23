@@ -388,20 +388,20 @@ plt.show()
 import shap
 
 # Criar explainer SHAP (para modelos baseados em árvore)
-explainer = shap.TreeExplainer(model)
+#explainer = shap.TreeExplainer(model)
 
 # Calcular valores SHAP (pode demorar para muitos dados)
-shap_values = explainer.shap_values(X_test)
+#shap_values = explainer.shap_values(X_test)
 
 
 # %%
 # Sumário global: impacto médio de cada variável
-shap.summary_plot(shap_values, X_test, plot_type="bar")
+#shap.summary_plot(shap_values, X_test, plot_type="bar")
 
 
 # %%
 # Mostra como cada feature afeta o output (positivo ou negativo)
-shap.summary_plot(shap_values, X_test)
+#shap.summary_plot(shap_values, X_test)
 
 
 # %%
@@ -498,6 +498,145 @@ plt.grid(True, linestyle='--', alpha=0.7)
 plt.legend(title='Empresa', loc='upper right')
 plt.axhspan(4, 5, color='green', alpha=0.05)
 plt.axhspan(0, 2, color='red', alpha=0.05)
+plt.tight_layout()
+plt.show()
+
+
+# %%
+# Criar uma cópia do DataFrame original
+df_sem_thyao = df[df['companycode'] != 'THYAO'].copy()
+
+# Verificar que THYAO foi removido
+print("THYAO removido?", 'THYAO' in df_sem_thyao['companycode'].unique())
+
+# %%
+df_sem_thyao
+
+# %%
+# Separar treino e teste com base em data (2023 como holdout)
+df_train = df_sem_thyao[df_sem_thyao['data'] < '2023-01-01']
+df_test  = df_sem_thyao[df_sem_thyao['data'] >= '2023-01-01']
+
+# Definir colunas de features
+feat = df_train.drop(columns=['score_total', 'companycode', 'ano', 'periodo', 'data']).columns.tolist()
+
+# Criar conjuntos
+X_train = df_train[feat]
+y_train = df_train['score_total']
+X_test  = df_test[feat]
+y_test  = df_test['score_total']
+
+# Treinar modelo
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import numpy as np
+
+model_holdout = RandomForestRegressor(random_state=42)
+model_holdout.fit(X_train, y_train)
+
+# Avaliar
+y_pred = model_holdout.predict(X_test)
+mae  = mean_absolute_error(y_test, y_pred)
+mse  = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+r2   = r2_score(y_test, y_pred)
+
+print("🔍 Holdout - Validação com Empresas (exceto THYAO):")
+print(f"MAE: {mae:.4f}, RMSE: {rmse:.4f}, R²: {r2:.4f}")
+
+
+# %%
+# Prever THYAO com modelo que nunca a viu
+df_thyao = df[df['companycode'] == 'THYAO'].copy()
+X_thyao = df_thyao[feat]
+df_thyao['score_predito'] = model_holdout.predict(X_thyao)
+
+
+# %%
+plt.figure(figsize=(14, 6))
+plt.plot(df_thyao['data'], df_thyao['score_total'], label='Real', color='blue', linewidth=2)
+plt.plot(df_thyao['data'], df_thyao['score_predito'], label='Previsto', color='orange', linestyle='--', linewidth=2)
+plt.title('Comparação: Score Total Real vs Previsto - THYAO (Modelo sem ver THYAO)')
+plt.xlabel('Ano')
+plt.ylabel('Score Total (0 a 5)')
+plt.legend()
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.tight_layout()
+plt.show()
+
+
+# %%
+# Selecionar empresas extremas
+ranking = df.groupby('companycode')['score_total'].mean().sort_values(ascending=False)
+melhor_empresa = ranking.index[0] if ranking.index[0] != 'THYAO' else ranking.index[1]
+pior_empresa = ranking.index[-1] if ranking.index[-1] != 'THYAO' else ranking.index[-2]
+
+# Dados reais das outras duas empresas
+df_extremos = df[df['companycode'].isin([melhor_empresa, pior_empresa])].copy()
+
+# Substituir dados reais de THYAO pelo previsto
+df_thyao_prev = df_thyao[['data', 'score_predito']].copy()
+df_thyao_prev['companycode'] = 'THYAO'
+df_thyao_prev.rename(columns={'score_predito': 'score_total'}, inplace=True)
+
+# Combinar os três
+df_final = pd.concat([df_extremos, df_thyao_prev], ignore_index=True)
+
+# Plotar
+plt.figure(figsize=(14, 7))
+sns.lineplot(
+    data=df_final,
+    x='data',
+    y='score_total',
+    hue='companycode',
+    palette={melhor_empresa: 'green', 'THYAO': 'blue', pior_empresa: 'red'},
+    hue_order=[melhor_empresa, 'THYAO', pior_empresa],
+    linewidth=2.5
+)
+plt.title('THYAO Previsto vs Benchmark Positivo e Negativo')
+plt.axhspan(4, 5, color='green', alpha=0.05)
+plt.axhspan(0, 2, color='red', alpha=0.05)
+plt.grid(True, linestyle='--', alpha=0.7)
+plt.ylabel('Score Total (0 a 5)')
+plt.xlabel('Ano')
+plt.tight_layout()
+plt.show()
+
+
+# %%
+# Selecionar empresas extremas
+ranking = df.groupby('companycode')['score_total'].mean().sort_values(ascending=False)
+melhor_empresa = ranking.index[0] if ranking.index[0] != 'THYAO' else ranking.index[1]
+pior_empresa = ranking.index[-1] if ranking.index[-1] != 'THYAO' else ranking.index[-2]
+
+# Dados reais das outras duas empresas
+df_extremos = df[df['companycode'].isin([melhor_empresa, pior_empresa])].copy()
+
+# Substituir dados reais de THYAO pelo previsto
+df_thyao_prev = df_thyao[['data', 'score_predito']].copy()
+df_thyao_prev['companycode'] = 'THYAO'
+df_thyao_prev.rename(columns={'score_predito': 'score_total'}, inplace=True)
+
+# Combinar os três
+df_final = pd.concat([df_extremos, df_thyao_prev], ignore_index=True)
+
+# Plotar
+plt.figure(figsize=(14, 7))
+sns.lineplot(
+    data=df_final,
+    x='data',
+    y='score_total',
+    hue='companycode',
+    palette={melhor_empresa: 'green', 'THYAO': 'blue', pior_empresa: 'red'},
+    hue_order=[melhor_empresa, 'THYAO', pior_empresa],
+    linewidth=2.5
+)
+plt.title('THYAO Previsto vs Benchmark Positivo e Negativo')
+plt.axhspan(4, 5, color='green', alpha=0.05)
+plt.axhspan(0, 2, color='red', alpha=0.05)
+plt.grid(True, linestyle='--', alpha=0.7)
+plt.ylabel('Score Total (0 a 5)')
+plt.xlabel('Ano')
 plt.tight_layout()
 plt.show()
 
