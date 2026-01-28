@@ -1,8 +1,5 @@
-# Projeto de Análise de Dados e Concessão de Crédito
-* MBA Ciência de Dados - USP ICMC São Carlos
-
-* Dados retirados do [Kaggle](https://www.kaggle.com/datasets/agrafintech/turkish-public-companies-balance-sheets-from-kap).
-* Também podem ser encontrados em [KAP](https://kap.org.tr/).
+# Análise de Crédito PJ com Machine Learning
+Este projeto desenvolve um modelo preditivo para mensurar o risco de crédito de Pessoas Jurídicas (PJ) utilizando **Machine Learning**. Diferente das abordagens tradicionais de classificação binária (Inadimplente/Não Inadimplente), este projeto propõe um **Score de Crédito Contínuo (0 a 5)**, permitindo uma análise de granularidade fina sobre a saúde financeira das empresas.
 
 ## Planejamento Inicial
 * Extrair os dados do Kaggle - ok
@@ -11,185 +8,54 @@
 * Tirar um Dataset do BD - ok
 * Entendimento dos Dados Contexto Financeiro - ok
 * Limpeza e Análise do Dataset - ok
-* Engenharia de Features - em andamento ...
-* Exploração dos Dados - por fazer
-* Visualização dos Dados com Gráficos e Dashboards - por fazer
-* Modelagem - por fazer
-* Validação - por fazer 
-* SHAP para explicaçaõ do Modelo - por fazer
+* Engenharia de Features - ok
+* Exploração dos Dados - ok
+* Visualização dos Dados com Gráficos e Dashboards - ok
+* Modelagem - ok
+* Validação - ok
+* SHAP para explicaçaõ do Modelo - ok
 
-### Engenharia de Dados
+## 1. Contexto Financeiro
+A análise de crédito é vital para mitigar riscos de inadimplência e garantir a sustentabilidade do sistema financeiro. No entanto, modelos tradicionais muitas vezes falham em capturar a **não linearidade** dos indicadores financeiros.
 
----
+A abordagem deste projeto utiliza algoritmos de *Ensemble* (Random Forest) para prever um score de risco baseado em demonstrações financeiras auditadas. O modelo prioriza a capacidade de geração de caixa e solvência sobre o tamanho absoluto da empresa, alinhando-se à teoria financeira moderna.
 
-### **Índices de Liquidez** (saúde financeira de curto prazo)
+## 2. Fonte de Dados
+Os dados utilizados referem-se a empresas públicas da **Turquia**, escolhidas pela disponibilidade e transparência, servindo como *proxy* para mercados emergentes.
 
-| Índice                          | Fórmula                                                                       | Significado                                                                                            |
-| ------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| **Índice de Liquidez Corrente** | Ativos Circulantes / Passivos Circulantes                                     | Mede se a empresa consegue pagar suas dívidas de curto prazo com ativos de curto prazo. >1 é saudável. |
-| **Índice de Liquidez Seca**     | (Caixa + Contas a Receber + Outros Ativos Circulantes) / Passivos Circulantes | Igual ao índice corrente, mas exclui os estoques — mostra a *liquidez imediata*.                       |
+*   **Fonte Original:** Plataforma de Transparência Pública da Turquia [KAP](https://kap.org.tr/) .
+*   **Repositório:** [Kaggle](https://www.kaggle.com/datasets/agrafintech/turkish-public-companies-balance-sheets-from-kap). ("Turkish Public Companies Balance Sheets from KAP").
+*   **Volume:** Demonstrações financeiras de **227 empresas** abrangendo o período de **2008 a 2024**,.
+*   **Estrutura:** Os dados brutos foram consolidados via script Python em um banco SQLite e posteriormente transformados em formato tabular (`csv`) para análise.
 
- **Por que importa:** Alta liquidez reduz o risco de inadimplência. O índice seco é mais conservador.
+## 3. Metodologia de Avaliação de Scores (Target)
+Como a base de dados não possuía um rótulo confiável de "inadimplência" (default), foi construída uma variável alvo (*Target*) sintética baseada na metodologia de **Joel Bessis** (*Risk Management in Banking*) e literatura financeira clássica.
 
----
+O **Score Total** é uma média ponderada de 6 dimensões financeiras, onde cada dimensão recebe uma nota de 0 a 5 baseada em *thresholds* de mercado:
 
-###  **Índices de Alavancagem** (endividamento e solvência)
+$$ Score = (S_{Liq} \times 0.15) + (S_{Alav} \times 0.20) + (S_{Rent} \times 0.20) + (S_{Ret} \times 0.15) + (S_{Efic} \times 0.20) + (S_{Cic} \times 0.10) $$
 
-| Índice                                       | Fórmula                                  | Significado                                                                    |
-| -------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------ |
-| **Dívida sobre Patrimônio (Debt-to-Equity)** | Dívidas Financeiras / Patrimônio Líquido | Compara capital de terceiros com o capital próprio — mede risco financeiro.    |
-| **Dívida sobre Ativos (Debt-to-Assets)**     | Dívidas Financeiras / Total de Ativos    | Percentual dos ativos financiados por dívida — quanto maior, mais alavancagem. |
+*Os pesos foram definidos para priorizar a solvência (Alavancagem/Eficiência) sobre a liquidez imediata.*
 
- **Por que importa:** Alta alavancagem = maior risco de inadimplência, mas alavancagem moderada = uso eficiente do capital.
+## 4. Engenharia de Atributos (Feature Engineering)
+A partir de 27 contas contábeis brutas (Ativos, Passivos, Receita, etc.), foram gerados **49 indicadores financeiros** (ratios). A escolha por *ratios* em vez de valores absolutos é crucial para eliminar o viés de tamanho da empresa (magnitude).
 
----
+### Principais Atributos Criados:
 
-###  **Índices de Rentabilidade** (capacidade de gerar lucro)
+| Categoria | Principais Indicadores | Por que foram escolhidos? |
+| :--- | :--- | :--- |
+| **Eficiência Operacional** | **EBITDA/Dívida**, Cobertura de Juros | **Cruciais:** Medem a capacidade real da empresa gerar caixa para pagar suas dívidas. O SHAP revelou que o `ebitda_divida` é o fator mais importante do modelo. |
+| **Liquidez** | Liquidez Corrente, **Liquidez Seca** | Avaliam a capacidade de pagamento de curto prazo. A Liquidez Seca foi selecionada por excluir estoques, oferecendo uma visão mais conservadora da solvência imediata. |
+| **Rentabilidade** | Margem Líquida, Margem EBITDA | Indicam a eficiência da gestão em converter vendas em lucro real, essencial para a continuidade do negócio. |
+| **Retornos** | **ROA** (Retorno sobre Ativos), ROE | Medem o retorno sobre o investimento. O ROA demonstrou alta correlação com o score final, indicando qualidade na gestão dos ativos. |
+| **Alavancagem** | Dívida/Patrimônio, Endividamento Total | Indicam o nível de risco e dependência de capital de terceiros. Foram usados para penalizar empresas excessivamente endividadas. |
+| **Ciclos** | Ciclo de Estoques, Recebíveis | Medem a velocidade da operação. Têm peso menor no score final (10%), servindo para ajuste fino da eficiência operacional. |
 
-| Índice                                     | Fórmula                               | Significado                                                               |
-| ------------------------------------------ | ------------------------------------- | ------------------------------------------------------------------------- |
-| **ROE (Retorno sobre Patrimônio Líquido)** | Lucro Líquido / Patrimônio Líquido    | Mede o retorno para os acionistas — eficiência no uso do capital próprio. |
-| **ROA (Retorno sobre Ativos)**             | Lucro Líquido / Total de Ativos       | Avalia a eficiência dos ativos em gerar lucro.                            |
-| **Margem Líquida**                         | Lucro Líquido / Receita de Vendas     | Percentual da receita que vira lucro líquido — lucratividade geral.       |
-| **Margem Operacional**                     | Lucro Operacional / Receita de Vendas | Lucratividade das operações principais antes de juros e impostos.         |
+## 5. Resultados do Modelo
+O projeto comparou Regressão Linear com Random Forest, validando a complexidade não linear dos dados.
 
- **Por que importa:** Mostra força e eficiência operacional — empresas lucrativas resistem melhor a crises.
+*   **Modelo Campeão:** Random Forest Regressor.
+*   **Performance:** R² de **0.97** e MAE de **0.06**.
+*   **Validação:** Testado via *Cross-Validation* (K-Fold) e *Blind Test* temporal (ano de 2024) e por entidade (Caso *Turkish Airlines*), demonstrando alta capacidade de generalização sem *overfitting*.
 
----
-
-###  **Índices de Eficiência** (desempenho operacional)
-
-| Índice                       | Fórmula                                | Significado                                                                             |
-| ---------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------- |
-| **Giro do Ativo**            | Receita de Vendas / Total de Ativos    | Mede quão eficientemente os ativos geram vendas.                                        |
-| **Giro de Estoques**         | Custo dos Produtos Vendidos / Estoques | Mede a velocidade de venda dos estoques — alto = eficiente, baixo = excesso de estoque. |
-| **Giro de Contas a Receber** | Receita de Vendas / Contas a Receber   | Mede a rapidez dos recebimentos — alto = bom gerenciamento de caixa.                    |
-
- **Por que importa:** Mostra quão bem a empresa utiliza seus recursos para gerar receita e fluxo de caixa.
-
----
-
-###  **Índices de Cobertura** (capacidade de pagamento da dívida)
-
-| Índice                                     | Fórmula                                  | Significado                                             |
-| ------------------------------------------ | ---------------------------------------- | ------------------------------------------------------- |
-| **Cobertura de Juros (Interest Coverage)** | Lucro Operacional / Despesas Financeiras | Mede quantas vezes o lucro cobre as despesas com juros. |
-
- **Por que importa:** Baixa cobertura = dificuldade em pagar dívidas → sinal precoce de estresse financeiro.
-
----
-
-###  **Índices de Crescimento** (momentum e tendência)
-
-| Índice                           | Fórmula                          | Significado                              |
-| -------------------------------- | -------------------------------- | ---------------------------------------- |
-| **Crescimento das Vendas**       | Δ Receita de Vendas / Receitaₜ₋₁ | Mede o crescimento da receita ano a ano. |
-| **Crescimento dos Ativos**       | Δ Total de Ativos / Ativosₜ₋₁    | Mostra a expansão dos recursos totais.   |
-| **Crescimento do Lucro Líquido** | Δ Lucro Líquido / Lucroₜ₋₁       | Indica a tendência de lucratividade.     |
-
- **Por que importa:** Crescimento consistente indica uma empresa saudável e em expansão — bom sinal para estabilidade de crédito.
-
----
-
-###  **Solvência e Estabilidade**
-
-| Índice                                    | Fórmula                                   | Significado                                                                           |
-| ----------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------- |
-| **Lucros Retidos sobre Ativos**           | Lucros Acumulados / Total de Ativos       | Percentual de ativos financiados por lucros passados — mede solvência de longo prazo. |
-| **Posição Cambial Líquida (FX Position)** | Posição Cambial Líquida / Total de Ativos | Mede exposição cambial — valores negativos = risco de câmbio.                         |
-
- **Por que importa:** Lucros retidos = força interna; exposição cambial = vulnerabilidade a choques externos.
-
----
-
-###  **Resumo**
-
-Cada índice revela **quão forte ou frágil** é uma empresa sob um aspecto específico:
-
-| Área Financeira | O que Responde                               |
-| --------------- | -------------------------------------------- |
-| Liquidez        | A empresa consegue pagar as contas em breve? |
-| Alavancagem     | Está excessivamente endividada?              |
-| Rentabilidade   | Está realmente gerando lucro?                |
-| Eficiência      | Usa bem seus recursos?                       |
-| Cobertura       | Consegue pagar os juros das dívidas?         |
-| Crescimento     | Está melhorando com o tempo?                 |
-| Solvência       | Possui estabilidade de longo prazo?          |
-| Câmbio (FX)     | Está exposta ao risco cambial?               |
-
----
-
- **Em resumo:**
-Esses índices formam um *check-up financeiro 360°* — mostram **capacidade de pagamento**, **geração de lucro** e **resiliência ao risco** — essenciais para avaliar a probabilidade de inadimplência e a saúde financeira da empresa.
-
-### Thresholds para criação das Features de Score.
-
----
-
-###  **Rentabilidade e Qualidade dos Lucros**
-
-| Métrica                        | Fórmula                            | Limiares (Aproximados)                   | Justificativa                                              |
-| ------------------------------ | ---------------------------------- | ---------------------------------------- | ---------------------------------------------------------- |
-| **Margem EBITDA**              | EBITDA / Vendas                    | <0 = 0; 0–10% = 3; 10–20% = 7; >20% = 10 | Damodaran (2023): margens médias por setor; <0 = prejuízo  |
-| **EBITDA / Juros**             | EBITDA / Despesas Financeiras      | <1 = 0; 1–3 = 5; 3–5 = 7; >5 = 10        | Van Horne (2008): cobertura >5× é considerada segura       |
-| **EBITDA / Dívida**            | EBITDA / Dívida Total              | <0.05 = 0; 0.1 = 5; 0.3 = 8; >0.5 = 10   | Moody’s: >30% = boa geração de caixa                       |
-| **ROE (Retorno sobre PL)**     | Lucro Líquido / Patrimônio Líquido | <0 = 0; 0–10% = 5; 10–20% = 7; >20% = 10 | Uyar & Kuzey (2014): >20% = quartil superior de desempenho |
-| **ROA (Retorno sobre Ativos)** | Lucro Líquido / Ativos Totais      | <0 = 0; 0–5% = 5; 5–10% = 8; >10% = 10   | Damodaran: mediana global do ROA ≈ 6%                      |
-| **Margem Líquida**             | Lucro Líquido / Vendas             | <0 = 0; 0–5% = 5; 5–15% = 8; >15% = 10   | OECD PME: 5–15% é saudável                                 |
-| **Margem Operacional**         | EBIT / Vendas                      | <0 = 0; 0–10% = 5; 10–20% = 8; >20% = 10 | Referência industrial comum                                |
-
- **Por que importa:** mede eficiência, lucratividade e cobertura de juros — indicadores diretos da capacidade de gerar lucro sustentável.
-
----
-
-### **Liquidez e Solvência**
-
-| Métrica                         | Fórmula                                                | Limiares (Aproximados)                        | Justificativa                               |
-| ------------------------------- | ------------------------------------------------------ | --------------------------------------------- | ------------------------------------------- |
-| **Índice de Liquidez Corrente** | Ativos Circulantes / Passivos Circulantes              | <1.0 = 0; 1–1.5 = 5; 1.5–2.5 = 8; >2.5 = 10   | Van Horne & Wachowicz (2008): 1.5–2.5 ideal |
-| **Índice de Liquidez Seca**     | (Ativos Circulantes - Estoques) / Passivos Circulantes | <0.5 = 0; 0.5–1.0 = 5; 1–1.5 = 8; >1.5 = 10   | Brigham & Ehrhardt (2017)                   |
-| **Dívida / Patrimônio**         | Dívida Total / Patrimônio Líquido                      | >3.0 = 0; 2–3 = 3; 1–2 = 6; <1 = 10           | Damodaran (2015): >3 = altamente alavancada |
-| **Dívida / Ativos**             | Dívida Total / Ativos Totais                           | >0.8 = 0; 0.6–0.8 = 3; 0.4–0.6 = 6; <0.4 = 10 | OECD: estrutura de capital típica           |
-| **Cobertura de Juros**          | EBIT / Despesas Financeiras                            | <1 = 0; 1–3 = 5; 3–5 = 8; >5 = 10             | Ohlson (1980): zonas de risco financeiro    |
-| **Lucros Retidos / Ativos**     | Lucros Acumulados / Ativos Totais                      | <0 = 0; 0–0.1 = 4; 0.1–0.3 = 8; >0.3 = 10     | Base do modelo Altman Z-Score               |
-
- **Por que importa:** mostra a capacidade de pagar dívidas e manter solvência a longo prazo.
-
----
-
-###  **Eficiência (Gestão de Ativos)**
-
-| Métrica                      | Fórmula                                | Limiares (Aproximados)                        | Justificativa                                           |
-| ---------------------------- | -------------------------------------- | --------------------------------------------- | ------------------------------------------------------- |
-| **Giro do Ativo**            | Vendas / Ativos                        | <0.3 = 0; 0.3–0.6 = 5; 0.6–1.0 = 8; >1.0 = 10 | OECD: eficiência operacional média                      |
-| **Giro de Estoques**         | Custo dos Produtos Vendidos / Estoques | <2 = 0; 2–4 = 5; 4–8 = 8; >8 = 10             | Livros contábeis: giro alto = eficiente                 |
-| **Giro de Contas a Receber** | Vendas / Contas a Receber              | <2 = 0; 2–5 = 5; 5–10 = 8; >10 = 10           | Brigham (2017): cobrança rápida = melhor fluxo de caixa |
-
- **Por que importa:** mede eficiência operacional e conversão de ativos em receita e caixa.
-
----
-
-### **Crescimento**
-
-| Métrica                          | Fórmula                   | Limiares (Aproximados)                 | Justificativa                                  |
-| -------------------------------- | ------------------------- | -------------------------------------- | ---------------------------------------------- |
-| **Crescimento das Vendas**       | ΔVendas / Vendasₜ₋₁       | <0 = 0; 0–5% = 4; 5–15% = 7; >15% = 10 | Damodaran (2024): crescimento sustentável ~10% |
-| **Crescimento dos Ativos**       | ΔAtivos / Ativosₜ₋₁       | <0 = 0; 0–5% = 4; 5–15% = 7; >15% = 10 | Reflete expansão de recursos e reinvestimento  |
-| **Crescimento do Lucro Líquido** | ΔLucro Líquido / Lucroₜ₋₁ | <0 = 0; 0–5% = 4; 5–20% = 8; >20% = 10 | Mede a melhoria da rentabilidade               |
-
- **Por que importa:** crescimento sustentável indica boa gestão e saúde financeira no longo prazo.
-
----
-
-### **Risco / Exposição Cambial**
-
-| Métrica                     | Fórmula                            | Limiares (Aproximados)                       | Justificativa                                            |
-| --------------------------- | ---------------------------------- | -------------------------------------------- | -------------------------------------------------------- |
-| **Posição Cambial Líquida** | Exposição Cambial Líquida / Ativos | < -0.2 = 0; -0.1–0 = 5; 0–0.1 = 8; >0.1 = 10 | CBRT (2021–2024): valores negativos = risco cambial alto |
-
- **Por que importa:** exposição cambial negativa sinaliza vulnerabilidade financeira e risco de perda em choques de moeda.
-
----
- * Observação Importante: A única ressalva é que os rácios de eficiência (como asset_turnover e inventory_turnover) são altamente dependentes do setor. Um supermercado terá um giro de estoque altíssimo, enquanto uma fabricante de aviões terá um giro baixíssimo. Seu modelo cria uma "regra geral" excelente, o que é um ótimo ponto de partida.
-
- 
+*Autor: Lucas Gregório Silva - TCC MBA em Ciência de Dados (USP/ICMC)*
