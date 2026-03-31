@@ -84,27 +84,13 @@ env/
 env.bak/
 venv.bak/
 
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
 # Local history
 .history/
-
-# macOS
-.DS_Store
 
 # Windows
 Thumbs.db
 ehthumbs.db
 Desktop.ini
-
-# PyCharm
-.idea/
-*.iml
 
 #archives
 .html

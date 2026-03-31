@@ -1,0 +1,27 @@
+{
+  "arquivo": "balancos_periodo_2008_2024.csv",
+  "hash_md5": "29e5489c9f94a7b5e5a94f539e25d043",
+  "data_ingestao": "2026-03-30T23:51:29.074500",
+  "linhas": 507212,
+  "colunas": 8,
+  "colunas_lista": [
+    "Desc",
+    "Yıllık",
+    "9 Aylık",
+    "6 Aylık",
+    "3 Aylık",
+    "OriginalFileName",
+    "CompanyCode",
+    "Year"
+  ],
+  "nulos_por_coluna": {
+    "Desc": 0,
+    "Yıllık": 10349,
+    "9 Aylık": 10920,
+    "6 Aylık": 9799,
+    "3 Aylık": 9304,
+    "OriginalFileName": 0,
+    "CompanyCode": 0,
+    "Year": 0
+  }
+}
